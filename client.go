@@ -46,6 +46,8 @@ type Client struct {
 
 	// Blockchain groups the blockchain-domain operations.
 	Blockchain *BlockchainService
+	// Card groups the card-domain operations.
+	Card *CardService
 }
 
 // ClientOption configures a Client. Pass options to NewClient.
@@ -126,6 +128,13 @@ func NewClient(apiKey string, opts ...ClientOption) *Client {
 		Lookups:    &BlockchainLookupsService{client: c},
 		NFT:        &BlockchainNFTService{client: c},
 		Storage:    &BlockchainStorageService{client: c},
+	}
+	c.Card = &CardService{
+		Cards:    &CardCardsService{client: c},
+		Balance:  &CardBalanceService{client: c},
+		Tags:     &CardTagsService{client: c},
+		Reports:  &CardReportsService{client: c},
+		Webhooks: &CardWebhooksService{client: c},
 	}
 	return c
 }
