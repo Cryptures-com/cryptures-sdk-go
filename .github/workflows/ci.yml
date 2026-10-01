@@ -22,6 +22,8 @@ jobs:
       - uses: actions/setup-go@v5
         with:
           go-version: ${{ matrix.go }}
+          # The module has no dependencies (no go.sum), so there is nothing to cache.
+          cache: false
 
       - name: Build
         run: go build ./...
