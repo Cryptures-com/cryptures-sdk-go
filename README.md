@@ -166,13 +166,26 @@ if errors.As(err, &apiErr) {
 }
 ```
 
+Error strings are safe to log. A network-level failure names only the HTTP method and the documented path template (for example `cryptures: GET /api/v1/blockchain/wallet/{chain}: dial tcp ...: connection refused`), never the request URL, so a mnemonic in the query string or path cannot end up in your logs. It still unwraps to a `*url.Error` (whose `URL` is that template) and to `net.Error`. `APIError.Message`, `Code` and `RequestID` have control characters replaced with spaces and are capped at 1024 characters; the raw body stays in `apiErr.Body`.
+
 Card operations forward the card issuer's own error body once Cryptures' checks have passed. Those still arrive as an `*APIError` (with `Code` and `Message` filled from the issuer's body); `apiErr.IsProviderError()` tells you which kind it is, and `apiErr.Body` always holds the raw response.
 
 ## Retries and idempotency
 
 Requests that are safe to repeat are retried on network errors and 5xx responses with exponential backoff (250 ms base, with jitter, honouring `Retry-After`), up to 3 retries by default. 4xx responses are never retried.
 
-Requests whose repetition could duplicate a side effect are **never** retried automatically: sending or broadcasting a transaction, deploying/minting/burning tokens, the JSON-RPC gateway, creating, funding or withdrawing from a card, card state changes, creating a verification session, and billed screenings sent without an idempotency key. The API documents that a timed-out broadcast can still confirm on chain, so check before you resend.
+Requests whose repetition could duplicate a side effect are **never** retried automatically:
+
+- `Blockchain.Operations.Send` and `Broadcast`, and `Blockchain.Contracts.DeployToken`, `MintToken` and `BurnToken`. The API documents that a timed-out broadcast can still confirm on chain, so check before you resend.
+- `Blockchain.Operations.RPC`, the JSON-RPC gateway: the call may be a broadcast such as `eth_sendRawTransaction`.
+- `Blockchain.Storage.UploadIPFS`, which is billed per call.
+- `Blockchain.Wallet.Generate`, where a retry would return a different new wallet.
+- `Card.Cards.Create`, `Fund` and `Withdraw`, which move money, and the card state changes `SetPIN`, `Block`, `Unblock` and `Terminate`.
+- `Card.Tags.Create`.
+- `Compliance.Sessions.Create`.
+- `Compliance.Screening.AMLCheck` and `CreateWalletScreening` **without** an idempotency key. Each of those calls is a separate charge.
+
+The Go, JavaScript and Python SDKs retry exactly the same set of operations.
 
 AML and wallet screenings accept an idempotency key. With one set, a repeated call returns the original result without screening or charging again, and the SDK retries those calls automatically:
 

@@ -174,6 +174,7 @@ func (s *BlockchainDataService) GetBalance(ctx context.Context, chain, address s
 	return doJSON[Balance](ctx, s.client, &requestSpec{
 		method:    http.MethodGet,
 		path:      pathf("/api/v1/blockchain/data/balance/%s/%s", chain, address),
+		route:     "/api/v1/blockchain/data/balance/{chain}/{address}",
 		retryable: true,
 	}, opts)
 }
@@ -307,6 +308,7 @@ func (s *BlockchainDataService) ListTokenTransfers(ctx context.Context, chain, a
 	return doJSON[TokenTransfers](ctx, s.client, &requestSpec{
 		method:    http.MethodGet,
 		path:      pathf("/api/v1/blockchain/data/token-transfers/%s/%s", chain, address),
+		route:     "/api/v1/blockchain/data/token-transfers/{chain}/{address}",
 		query:     q.values(),
 		retryable: true,
 	}, opts)
@@ -412,6 +414,7 @@ func (s *BlockchainDataService) GetTransactionHistory(ctx context.Context, chain
 	return doJSON[TransactionHistory](ctx, s.client, &requestSpec{
 		method:    http.MethodGet,
 		path:      pathf("/api/v1/blockchain/data/history/%s/%s", chain, address),
+		route:     "/api/v1/blockchain/data/history/{chain}/{address}",
 		query:     q.values(),
 		retryable: true,
 	}, opts)
@@ -472,6 +475,7 @@ func (s *BlockchainDataService) GetPortfolio(ctx context.Context, chain, address
 	return doJSON[Portfolio](ctx, s.client, &requestSpec{
 		method:    http.MethodGet,
 		path:      pathf("/api/v1/blockchain/data/portfolio/%s/%s", chain, address),
+		route:     "/api/v1/blockchain/data/portfolio/{chain}/{address}",
 		query:     q.values(),
 		retryable: true,
 	}, opts)
@@ -521,6 +525,7 @@ func (s *BlockchainDataService) GetBalanceHistory(ctx context.Context, chain, ad
 	return doJSON[BalanceHistory](ctx, s.client, &requestSpec{
 		method:    http.MethodGet,
 		path:      pathf("/api/v1/blockchain/data/balance-history/%s/%s", chain, address),
+		route:     "/api/v1/blockchain/data/balance-history/{chain}/{address}",
 		query:     q.values(),
 		retryable: true,
 	}, opts)
@@ -550,6 +555,7 @@ func (s *BlockchainDataService) CheckAddress(ctx context.Context, address string
 	return doJSON[AddressCheck](ctx, s.client, &requestSpec{
 		method:    http.MethodGet,
 		path:      pathf("/api/v1/blockchain/data/security/%s", address),
+		route:     "/api/v1/blockchain/data/security/{address}",
 		retryable: true,
 	}, opts)
 }
@@ -587,6 +593,7 @@ func (s *BlockchainDataService) GetExchangeRate(ctx context.Context, symbol stri
 	return doJSON[ExchangeRate](ctx, s.client, &requestSpec{
 		method:    http.MethodGet,
 		path:      pathf("/api/v1/blockchain/data/rate/%s", symbol),
+		route:     "/api/v1/blockchain/data/rate/{symbol}",
 		query:     q.values(),
 		retryable: true,
 	}, opts)
@@ -841,6 +848,7 @@ func (s *BlockchainDataService) GetMarketTickers(ctx context.Context, ids string
 	out, err := doJSON[[]MarketTicker](ctx, s.client, &requestSpec{
 		method:    http.MethodGet,
 		path:      pathf("/api/v1/blockchain/data/market/tickers/%s", ids),
+		route:     "/api/v1/blockchain/data/market/tickers/{id}",
 		retryable: true,
 	}, opts)
 	if err != nil {
@@ -922,6 +930,7 @@ func (s *BlockchainDataService) GetCoinInfo(ctx context.Context, id string, opts
 	out, err := doJSON[[]CoinInfo](ctx, s.client, &requestSpec{
 		method:    http.MethodGet,
 		path:      pathf("/api/v1/blockchain/data/market/coin/%s/info", id),
+		route:     "/api/v1/blockchain/data/market/coin/{id}/info",
 		retryable: true,
 	}, opts)
 	if err != nil {
@@ -956,6 +965,7 @@ func (s *BlockchainDataService) GetCoinOHLCV(ctx context.Context, id string, opt
 	out, err := doJSON[[]OHLCVCandle](ctx, s.client, &requestSpec{
 		method:    http.MethodGet,
 		path:      pathf("/api/v1/blockchain/data/market/coin/%s/ohlcv", id),
+		route:     "/api/v1/blockchain/data/market/coin/{id}/ohlcv",
 		retryable: true,
 	}, opts)
 	if err != nil {
@@ -982,6 +992,7 @@ func (s *BlockchainDataService) GetCoinMarkets(ctx context.Context, id string, o
 	out, err := doJSON[[]CoinMarket](ctx, s.client, &requestSpec{
 		method:    http.MethodGet,
 		path:      pathf("/api/v1/blockchain/data/market/coin/%s/markets", id),
+		route:     "/api/v1/blockchain/data/market/coin/{id}/markets",
 		retryable: true,
 	}, opts)
 	if err != nil {
@@ -1014,6 +1025,7 @@ func (s *BlockchainDataService) GetCoinSocial(ctx context.Context, id string, op
 	return doJSON[CoinSocial](ctx, s.client, &requestSpec{
 		method:    http.MethodGet,
 		path:      pathf("/api/v1/blockchain/data/market/coin/%s/social", id),
+		route:     "/api/v1/blockchain/data/market/coin/{id}/social",
 		retryable: true,
 	}, opts)
 }
@@ -1071,6 +1083,7 @@ func (s *BlockchainDataService) GetExchange(ctx context.Context, id string, opts
 	return doJSON[ExchangeDetail](ctx, s.client, &requestSpec{
 		method:    http.MethodGet,
 		path:      pathf("/api/v1/blockchain/data/market/exchanges/%s", id),
+		route:     "/api/v1/blockchain/data/market/exchanges/{id}",
 		retryable: true,
 	}, opts)
 }

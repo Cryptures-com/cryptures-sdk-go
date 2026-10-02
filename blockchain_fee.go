@@ -32,6 +32,7 @@ func (s *BlockchainFeeService) Get(ctx context.Context, chain string, opts ...Re
 	return doJSON[FeeEstimate](ctx, s.client, &requestSpec{
 		method:    http.MethodGet,
 		path:      pathf("/api/v1/blockchain/data/fee/%s", chain),
+		route:     "/api/v1/blockchain/data/fee/{chain}",
 		retryable: true,
 	}, opts)
 }
@@ -68,6 +69,7 @@ func (s *BlockchainFeeService) EstimateGas(ctx context.Context, chain string, re
 	return doJSON[GasEstimate](ctx, s.client, &requestSpec{
 		method:    http.MethodPost,
 		path:      pathf("/api/v1/blockchain/data/fee/gas/%s", chain),
+		route:     "/api/v1/blockchain/data/fee/gas/{chain}",
 		body:      req,
 		retryable: true, // read-only estimate
 	}, opts)

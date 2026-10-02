@@ -108,6 +108,7 @@ func (s *BlockchainLookupsService) GetTransaction(ctx context.Context, chain, ha
 	return doJSON[Transaction](ctx, s.client, &requestSpec{
 		method:    http.MethodGet,
 		path:      pathf("/api/v1/blockchain/data/tx/%s/%s", chain, hash),
+		route:     "/api/v1/blockchain/data/tx/{chain}/{hash}",
 		retryable: true,
 	}, opts)
 }
@@ -191,6 +192,7 @@ func (s *BlockchainLookupsService) GetBlock(ctx context.Context, chain, hashOrHe
 	return doJSON[Block](ctx, s.client, &requestSpec{
 		method:    http.MethodGet,
 		path:      pathf("/api/v1/blockchain/data/block/%s/%s", chain, hashOrHeight),
+		route:     "/api/v1/blockchain/data/block/{chain}/{hashOrHeight}",
 		retryable: true,
 	}, opts)
 }
@@ -226,6 +228,7 @@ func (s *BlockchainLookupsService) GetLatestBlock(ctx context.Context, chain str
 	return doJSON[TronLatestBlock](ctx, s.client, &requestSpec{
 		method:    http.MethodGet,
 		path:      pathf("/api/v1/blockchain/data/block/%s/latest", chain),
+		route:     "/api/v1/blockchain/data/block/{chain}/latest",
 		retryable: true,
 	}, opts)
 }
@@ -267,6 +270,7 @@ func (s *BlockchainLookupsService) GetToken(ctx context.Context, chain, tokenAdd
 	return doJSON[TokenMetadata](ctx, s.client, &requestSpec{
 		method:    http.MethodGet,
 		path:      pathf("/api/v1/blockchain/data/tokens/%s/%s", chain, tokenAddress),
+		route:     "/api/v1/blockchain/data/tokens/{chain}/{tokenAddress}",
 		query:     q.values(),
 		retryable: true,
 	}, opts)
@@ -296,6 +300,7 @@ func (s *BlockchainLookupsService) ListUTXOs(ctx context.Context, chain, address
 	out, err := doJSON[[]UTXO](ctx, s.client, &requestSpec{
 		method:    http.MethodGet,
 		path:      pathf("/api/v1/blockchain/data/utxo/%s/%s", chain, address),
+		route:     "/api/v1/blockchain/data/utxo/{chain}/{address}",
 		query:     newQuery().float("totalValue", totalValue).values(),
 		retryable: true,
 	}, opts)

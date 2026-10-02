@@ -48,17 +48,22 @@ type Wallet struct {
 }
 
 // Generate creates a brand-new wallet for chain and returns its secret
-// material in plaintext. params may be nil.
+// material in plaintext. params may be nil. It is never retried
+// automatically.
 func (s *BlockchainWalletService) Generate(ctx context.Context, chain string, params *GenerateWalletParams, opts ...RequestOption) (*Wallet, error) {
 	q := newQuery()
 	if params != nil {
 		q.str("mnemonic", params.Mnemonic)
 	}
 	return doJSON[Wallet](ctx, s.client, &requestSpec{
-		method:    http.MethodGet,
-		path:      pathf("/api/v1/blockchain/wallet/%s", chain),
-		query:     q.values(),
-		retryable: true,
+		method: http.MethodGet,
+		path:   pathf("/api/v1/blockchain/wallet/%s", chain),
+		route:  "/api/v1/blockchain/wallet/{chain}",
+		query:  q.values(),
+		// Not retried automatically: without a mnemonic every call returns a
+		// different fresh wallet, so a retry after a 5xx or a dropped
+		// connection would silently hand back a different wallet than one the
+		// API may already have generated. Same policy in the JS and Python SDKs.
 	}, opts)
 }
 
@@ -82,6 +87,7 @@ func (s *BlockchainWalletService) DeriveAddress(ctx context.Context, chain, xpub
 	return doJSON[DerivedAddress](ctx, s.client, &requestSpec{
 		method:    http.MethodGet,
 		path:      pathf("/api/v1/blockchain/wallet/%s/address/%s/%s", chain, xpub, strconv.FormatInt(index, 10)),
+		route:     "/api/v1/blockchain/wallet/{chain}/address/{xpub}/{index}",
 		retryable: true,
 	}, opts)
 }
@@ -110,6 +116,7 @@ func (s *BlockchainWalletService) DerivePrivateKey(ctx context.Context, chain st
 	return doJSON[PrivateKey](ctx, s.client, &requestSpec{
 		method:    http.MethodPost,
 		path:      pathf("/api/v1/blockchain/key/%s/derive", chain),
+		route:     "/api/v1/blockchain/key/{chain}/derive",
 		body:      req,
 		retryable: true, // deterministic, no side effects
 	}, opts)

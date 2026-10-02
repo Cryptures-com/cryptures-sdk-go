@@ -192,6 +192,7 @@ func (s *BlockchainOperationsService) Send(ctx context.Context, chain string, re
 	return doJSON[TxIDResponse](ctx, s.client, &requestSpec{
 		method: http.MethodPost,
 		path:   pathf("/api/v1/blockchain/operations/transaction/%s/send", chain),
+		route:  "/api/v1/blockchain/operations/transaction/{chain}/send",
 		body:   req,
 	}, opts)
 }
@@ -216,6 +217,7 @@ func (s *BlockchainOperationsService) Broadcast(ctx context.Context, chain strin
 	return doJSON[TxIDResponse](ctx, s.client, &requestSpec{
 		method: http.MethodPost,
 		path:   pathf("/api/v1/blockchain/operations/transaction/%s/broadcast", chain),
+		route:  "/api/v1/blockchain/operations/transaction/{chain}/broadcast",
 		body:   req,
 	}, opts)
 }
@@ -289,6 +291,7 @@ func (s *BlockchainOperationsService) RPC(ctx context.Context, chain string, req
 	return doJSON[RPCResponse](ctx, s.client, &requestSpec{
 		method: http.MethodPost,
 		path:   pathf("/api/v1/blockchain/operations/rpc/%s", chain),
+		route:  "/api/v1/blockchain/operations/rpc/{chain}",
 		body:   &body,
 	}, opts)
 }

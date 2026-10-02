@@ -148,6 +148,7 @@ func (s *ComplianceScreeningService) GetWalletScreening(ctx context.Context, che
 	return doJSON[WalletScreening](ctx, s.client, &requestSpec{
 		method:    http.MethodGet,
 		path:      pathf("/api/v1/compliance/wallet-screenings/%s", checkID),
+		route:     "/api/v1/compliance/wallet-screenings/{check_id}",
 		retryable: true,
 	}, opts)
 }
