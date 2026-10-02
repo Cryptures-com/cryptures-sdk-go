@@ -5,7 +5,37 @@ import (
 	"fmt"
 	"net/http"
 	"strings"
+	"unicode"
 )
+
+// maxErrorFieldRunes caps the length of the Code, Message, and RequestID that
+// an APIError takes from a response body. The full body stays in Body.
+const maxErrorFieldRunes = 1024
+
+// truncatedSuffix marks a field cut at maxErrorFieldRunes.
+const truncatedSuffix = "... [truncated]"
+
+// sanitizeErrorField makes a server-supplied string safe to embed in an error
+// message that will likely be logged: control characters (CR, LF, ...) and
+// Unicode line/paragraph separators become spaces, so a malicious or buggy
+// upstream cannot forge extra log lines, and the result is capped at
+// maxErrorFieldRunes runes.
+func sanitizeErrorField(s string) string {
+	var b strings.Builder
+	n := 0
+	for _, r := range s {
+		if n == maxErrorFieldRunes {
+			b.WriteString(truncatedSuffix)
+			break
+		}
+		if unicode.IsControl(r) || r == '\u2028' || r == '\u2029' {
+			r = ' '
+		}
+		b.WriteRune(r)
+		n++
+	}
+	return b.String()
+}
 
 // APIError is returned for every non-2xx response from the Cryptures API.
 // Inspect it with errors.As:
@@ -30,7 +60,9 @@ type APIError struct {
 	// "insufficient_balance", "rate_limited". It may be empty when the body
 	// carries no code.
 	Code string
-	// Message is the human-readable explanation.
+	// Message is the human-readable explanation. Control characters (CR, LF,
+	// ...) are replaced with spaces and it is capped at 1024 characters, so it
+	// is safe to log; the unmodified text is still in Body.
 	Message string
 	// RequestID identifies the request in Cryptures' logs. Include it when
 	// reporting an issue.
@@ -105,6 +137,9 @@ func newAPIError(resp *http.Response, body []byte) *APIError {
 	if apiErr.RequestID == "" {
 		apiErr.RequestID = resp.Header.Get("X-Request-ID")
 	}
+	apiErr.Code = sanitizeErrorField(apiErr.Code)
+	apiErr.Message = sanitizeErrorField(apiErr.Message)
+	apiErr.RequestID = sanitizeErrorField(apiErr.RequestID)
 	if apiErr.Message == "" && apiErr.Code == "" {
 		apiErr.Message = http.StatusText(resp.StatusCode)
 	}

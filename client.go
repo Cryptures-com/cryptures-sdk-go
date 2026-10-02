@@ -8,7 +8,7 @@ import (
 
 const (
 	// Version is the version of this SDK. It is sent in the User-Agent header.
-	Version = "0.1.0"
+	Version = "0.1.1"
 
 	// DefaultBaseURL is the production Cryptures API endpoint.
 	DefaultBaseURL = "https://api.cryptures.com"

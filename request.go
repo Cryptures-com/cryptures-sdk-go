@@ -25,7 +25,14 @@ type requestSpec struct {
 	method string
 	// path is the request path, with every caller-supplied segment already
 	// escaped (see pathf).
-	path  string
+	path string
+	// route is the documented path template, e.g.
+	// "/api/v1/blockchain/wallet/{chain}". It is what error messages show,
+	// so that caller-supplied path segments (which can be secrets, like an
+	// EGLD mnemonic passed to DeriveAddress) never end up in an error string.
+	// It must be set whenever path is built with pathf; for a fixed path it
+	// may be left empty and path is used.
+	route string
 	query url.Values
 	// body is JSON-encoded when non-nil.
 	body any
@@ -92,6 +99,53 @@ type ResponseMetadata struct {
 	Header http.Header
 }
 
+// displayRoute is the path as error messages show it: the documented template
+// (route) when the path has caller-supplied segments, else the fixed path.
+func (s *requestSpec) displayRoute() string {
+	if s.route != "" {
+		return s.route
+	}
+	return s.path
+}
+
+// op names the call in error messages as "METHOD /route/{template}". It never
+// includes the interpolated path or the query string, either of which can
+// carry secrets (the mnemonic sent by Wallet.Generate, or the EGLD mnemonic
+// placed in the path by Wallet.DeriveAddress).
+func (s *requestSpec) op() string {
+	return s.method + " " + s.displayRoute()
+}
+
+// transportError is returned when a request fails at the network level
+// (connection refused, DNS or TLS failure, timeout, ...) before any HTTP
+// response arrived.
+//
+// Its message names only the HTTP method and the documented path template,
+// never the request URL, which can carry secrets in its query string or path.
+// It unwraps to a *url.Error whose URL field holds that same path template, so
+// errors.As with *url.Error or net.Error, and errors.Is with
+// context.DeadlineExceeded, keep working.
+type transportError struct {
+	op  string
+	err *url.Error
+}
+
+func (e *transportError) Error() string { return "cryptures: " + e.op + ": " + e.err.Err.Error() }
+
+func (e *transportError) Unwrap() error { return e.err }
+
+// newTransportError wraps an error from http.Client.Do without keeping the
+// request URL, which *url.Error embeds in its message verbatim.
+func newTransportError(spec *requestSpec, err error) error {
+	redacted := &url.Error{Op: spec.method, URL: spec.displayRoute(), Err: err}
+	var urlErr *url.Error
+	if errors.As(err, &urlErr) {
+		redacted.Op = urlErr.Op
+		redacted.Err = urlErr.Err
+	}
+	return &transportError{op: spec.op(), err: redacted}
+}
+
 // pathf formats an API path, escaping every argument as a single path
 // segment so caller-supplied identifiers cannot alter the route. Commas are
 // left literal: they are legal in a path segment and the API accepts
@@ -114,14 +168,14 @@ func doJSON[T any](ctx context.Context, c *Client, spec *requestSpec, opts []Req
 
 	body, err := io.ReadAll(resp.Body)
 	if err != nil {
-		return nil, fmt.Errorf("cryptures: reading %s %s response: %w", spec.method, spec.path, err)
+		return nil, fmt.Errorf("cryptures: reading %s response: %w", spec.op(), err)
 	}
 	out := new(T)
 	if len(bytes.TrimSpace(body)) == 0 {
 		return out, nil
 	}
 	if err := json.Unmarshal(body, out); err != nil {
-		return nil, fmt.Errorf("cryptures: decoding %s %s response: %w", spec.method, spec.path, err)
+		return nil, fmt.Errorf("cryptures: decoding %s response: %w", spec.op(), err)
 	}
 	return out, nil
 }
@@ -158,7 +212,7 @@ func (c *Client) send(ctx context.Context, spec *requestSpec, opts []RequestOpti
 	case spec.body != nil:
 		b, err := json.Marshal(spec.body)
 		if err != nil {
-			return nil, fmt.Errorf("cryptures: encoding %s %s request body: %w", spec.method, spec.path, err)
+			return nil, fmt.Errorf("cryptures: encoding %s request body: %w", spec.op(), err)
 		}
 		payload = b
 		contentType = "application/json"
@@ -184,7 +238,7 @@ func (c *Client) send(ctx context.Context, spec *requestSpec, opts []RequestOpti
 		resp, err := c.httpClient.Do(req)
 		if err != nil {
 			if ctxErr := ctx.Err(); ctxErr != nil {
-				return nil, fmt.Errorf("cryptures: %s %s: %w", spec.method, spec.path, ctxErr)
+				return nil, fmt.Errorf("cryptures: %s: %w", spec.op(), ctxErr)
 			}
 			if attempt < maxRetries {
 				if werr := c.wait(ctx, attempt, nil); werr != nil {
@@ -192,7 +246,9 @@ func (c *Client) send(ctx context.Context, spec *requestSpec, opts []RequestOpti
 				}
 				continue
 			}
-			return nil, fmt.Errorf("cryptures: %s %s: %w", spec.method, spec.path, err)
+			// Never wrap err directly: *url.Error's message embeds the full
+			// request URL, query string and all.
+			return nil, newTransportError(spec, err)
 		}
 
 		if resp.StatusCode >= 500 && attempt < maxRetries {
@@ -223,7 +279,13 @@ func (c *Client) newHTTPRequest(ctx context.Context, spec *requestSpec, endpoint
 	}
 	req, err := http.NewRequestWithContext(ctx, spec.method, endpoint, body)
 	if err != nil {
-		return nil, fmt.Errorf("cryptures: building %s %s request: %w", spec.method, spec.path, err)
+		// A URL parse failure is a *url.Error that embeds the full URL; keep
+		// only its cause.
+		var urlErr *url.Error
+		if errors.As(err, &urlErr) {
+			err = urlErr.Err
+		}
+		return nil, fmt.Errorf("cryptures: building %s request: %w", spec.op(), err)
 	}
 	for k, vs := range ro.header {
 		for _, v := range vs {
@@ -311,13 +373,6 @@ func newQuery() *queryBuilder { return &queryBuilder{v: url.Values{}} }
 func (q *queryBuilder) str(key, value string) *queryBuilder {
 	if value != "" {
 		q.v.Set(key, value)
-	}
-	return q
-}
-
-func (q *queryBuilder) strPtr(key string, value *string) *queryBuilder {
-	if value != nil {
-		q.v.Set(key, *value)
 	}
 	return q
 }

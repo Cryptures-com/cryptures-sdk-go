@@ -98,6 +98,7 @@ func (s *ComplianceSessionsService) Get(ctx context.Context, sessionID string, o
 	return doJSON[Session](ctx, s.client, &requestSpec{
 		method:    http.MethodGet,
 		path:      pathf("/api/v1/compliance/sessions/%s", sessionID),
+		route:     "/api/v1/compliance/sessions/{session_id}",
 		retryable: true,
 	}, opts)
 }
@@ -248,6 +249,7 @@ func (s *ComplianceSessionsService) GetDocument(ctx context.Context, sessionID, 
 	return doFile(ctx, s.client, &requestSpec{
 		method:    http.MethodGet,
 		path:      pathf("/api/v1/compliance/sessions/%s/documents/%s", sessionID, field),
+		route:     "/api/v1/compliance/sessions/{session_id}/documents/{field}",
 		query:     q.values(),
 		retryable: true,
 	}, opts)
@@ -276,6 +278,7 @@ func (s *ComplianceSessionsService) UpdateStatus(ctx context.Context, sessionID 
 	return doJSON[SessionStatusUpdate](ctx, s.client, &requestSpec{
 		method:    http.MethodPatch,
 		path:      pathf("/api/v1/compliance/sessions/%s/status", sessionID),
+		route:     "/api/v1/compliance/sessions/{session_id}/status",
 		body:      req,
 		retryable: true,
 	}, opts)
@@ -299,6 +302,7 @@ func (s *ComplianceSessionsService) Delete(ctx context.Context, sessionID string
 	return doNoContent(ctx, s.client, &requestSpec{
 		method:    http.MethodDelete,
 		path:      pathf("/api/v1/compliance/sessions/%s", sessionID),
+		route:     "/api/v1/compliance/sessions/{session_id}",
 		query:     q.values(),
 		retryable: true,
 	}, opts)
@@ -322,6 +326,7 @@ func (s *ComplianceSessionsService) CreateReport(ctx context.Context, sessionID 
 	return doJSON[Report](ctx, s.client, &requestSpec{
 		method:    http.MethodPost,
 		path:      pathf("/api/v1/compliance/sessions/%s/report", sessionID),
+		route:     "/api/v1/compliance/sessions/{session_id}/report",
 		retryable: true, // free, and a newer report simply supersedes the old one
 	}, opts)
 }
@@ -333,6 +338,7 @@ func (s *ComplianceSessionsService) DownloadReport(ctx context.Context, sessionI
 	return doFile(ctx, s.client, &requestSpec{
 		method:    http.MethodGet,
 		path:      pathf("/api/v1/compliance/sessions/%s/report", sessionID),
+		route:     "/api/v1/compliance/sessions/{session_id}/report",
 		retryable: true,
 	}, opts)
 }

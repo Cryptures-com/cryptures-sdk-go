@@ -59,6 +59,7 @@ func (s *BlockchainNFTService) ListCollection(ctx context.Context, chain, collec
 	out, err := doJSON[[]NFT](ctx, s.client, &requestSpec{
 		method:    http.MethodGet,
 		path:      pathf("/api/v1/blockchain/data/nft/collection/%s/%s", chain, collectionAddress),
+		route:     "/api/v1/blockchain/data/nft/collection/{chain}/{collectionAddress}",
 		query:     q.values(),
 		retryable: true,
 	}, opts)
@@ -87,6 +88,7 @@ func (s *BlockchainNFTService) GetOwners(ctx context.Context, chain, tokenAddres
 	out, err := doJSON[[]string](ctx, s.client, &requestSpec{
 		method:    http.MethodGet,
 		path:      pathf("/api/v1/blockchain/data/nft/owner/%s/%s/%s", chain, tokenAddress, tokenID),
+		route:     "/api/v1/blockchain/data/nft/owner/{chain}/{tokenAddress}/{tokenId}",
 		query:     q.values(),
 		retryable: true,
 	}, opts)

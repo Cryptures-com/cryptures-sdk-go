@@ -76,6 +76,7 @@ func (s *CardTagsService) Update(ctx context.Context, tagID string, req *UpdateT
 	return doJSON[Tag](ctx, s.client, &requestSpec{
 		method:    http.MethodPatch,
 		path:      pathf("/api/v1/card/tags/%s", tagID),
+		route:     "/api/v1/card/tags/{tag_id}",
 		body:      req,
 		retryable: true, // setting the same values again is idempotent
 	}, opts)
@@ -92,6 +93,7 @@ func (s *CardTagsService) Delete(ctx context.Context, tagID string, opts ...Requ
 	return doJSON[TagDeleted](ctx, s.client, &requestSpec{
 		method:    http.MethodDelete,
 		path:      pathf("/api/v1/card/tags/%s", tagID),
+		route:     "/api/v1/card/tags/{tag_id}",
 		retryable: true,
 	}, opts)
 }

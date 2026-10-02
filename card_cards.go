@@ -113,6 +113,7 @@ func (s *CardCardsService) Get(ctx context.Context, cardID string, opts ...Reque
 	return doJSON[CardResponse](ctx, s.client, &requestSpec{
 		method:    http.MethodGet,
 		path:      pathf("/api/v1/card/cards/%s", cardID),
+		route:     "/api/v1/card/cards/{card_id}",
 		retryable: true,
 	}, opts)
 }
@@ -128,6 +129,7 @@ func (s *CardCardsService) SetPIN(ctx context.Context, cardID, pin string, opts 
 	return doJSON[StatusMessage](ctx, s.client, &requestSpec{
 		method: http.MethodPost,
 		path:   pathf("/api/v1/card/cards/%s/pin", cardID),
+		route:  "/api/v1/card/cards/{card_id}/pin",
 		body:   setPINRequest{PIN: pin},
 	}, opts)
 }
@@ -162,6 +164,7 @@ func (s *CardCardsService) Fund(ctx context.Context, cardID string, amount float
 	return doJSON[CardAmountResponse](ctx, s.client, &requestSpec{
 		method: http.MethodPost,
 		path:   pathf("/api/v1/card/cards/%s/fund", cardID),
+		route:  "/api/v1/card/cards/{card_id}/fund",
 		body:   cardAmountRequest{Amount: amount},
 	}, opts)
 }
@@ -175,6 +178,7 @@ func (s *CardCardsService) Withdraw(ctx context.Context, cardID string, amount f
 	return doJSON[CardAmountResponse](ctx, s.client, &requestSpec{
 		method: http.MethodPost,
 		path:   pathf("/api/v1/card/cards/%s/withdraw", cardID),
+		route:  "/api/v1/card/cards/{card_id}/withdraw",
 		body:   cardAmountRequest{Amount: amount},
 	}, opts)
 }
@@ -212,6 +216,7 @@ func (s *CardCardsService) changeStatus(ctx context.Context, cardID, action stri
 	return doJSON[CardStatusResponse](ctx, s.client, &requestSpec{
 		method: http.MethodPost,
 		path:   pathf("/api/v1/card/cards/%s/", cardID) + action,
+		route:  "/api/v1/card/cards/{card_id}/" + action,
 	}, opts)
 }
 
@@ -271,6 +276,7 @@ func (s *CardCardsService) ListTransactions(ctx context.Context, cardID string, 
 	return doJSON[CardTransactionsResponse](ctx, s.client, &requestSpec{
 		method:    http.MethodGet,
 		path:      pathf("/api/v1/card/cards/%s/transactions", cardID),
+		route:     "/api/v1/card/cards/{card_id}/transactions",
 		query:     q.values(),
 		retryable: true,
 	}, opts)
@@ -328,6 +334,7 @@ func (s *CardCardsService) SetTags(ctx context.Context, cardID string, tags []st
 	return doJSON[CardTags](ctx, s.client, &requestSpec{
 		method:    http.MethodPut,
 		path:      pathf("/api/v1/card/cards/%s/tags", cardID),
+		route:     "/api/v1/card/cards/{card_id}/tags",
 		body:      setCardTagsRequest{Tags: tags},
 		retryable: true, // full replace, idempotent
 	}, opts)
