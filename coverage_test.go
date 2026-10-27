@@ -54,7 +54,7 @@ func loadOperations(t *testing.T) []operation {
 // /block/TRON/latest counts for block.latest, not block.get).
 func TestEveryOperationIsCovered(t *testing.T) {
 	ops := loadOperations(t)
-	if len(ops) != 80 {
+	if len(ops) != 81 {
 		t.Fatalf("expected 80 operations in testdata/operations.txt, found %d", len(ops))
 	}
 
@@ -74,6 +74,7 @@ func TestEveryOperationIsCovered(t *testing.T) {
 	// TestComplianceBinaryEndpoints, which assert these exact requests.
 	hits = append(hits,
 		hit{"POST", "/api/v1/blockchain/storage/ipfs"},
+		hit{"POST", "/api/v1/card/cards/card_a1b2c3d4/kyc"},
 		hit{"GET", "/api/v1/compliance/sessions/a1b2c3d4/documents/front_image"},
 		hit{"GET", "/api/v1/compliance/sessions/a1b2c3d4/report"},
 	)

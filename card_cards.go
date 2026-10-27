@@ -9,7 +9,7 @@ import (
 // CardCardsService manages virtual cards.
 //
 // Operations that move money or change card state (Create, Fund, Withdraw,
-// SetPIN, Block, Unblock, Terminate) are never retried automatically: an
+// SetPIN, Block, Unblock, Terminate, SubmitKyc) are never retried automatically: an
 // ambiguous failure may already have debited the balance or reached the
 // issuer. Reconcile with Card.Balance.ListTransactions or Cards.Get before
 // repeating them.
@@ -56,6 +56,23 @@ type Card struct {
 	// Tags are the card's current tags. On Create they appear only when tags
 	// were sent in the request.
 	Tags []CardTag `json:"tags,omitempty"`
+	// Kyc is the card's identity-document (KYC) state. See SubmitKyc.
+	Kyc CardKyc `json:"kyc"`
+}
+
+// CardKyc is a card's identity-document (KYC) state.
+type CardKyc struct {
+	// Supported reports whether the card's product accepts KYC documents.
+	// When false, SubmitKyc fails with a 409 kyc_not_supported *APIError.
+	Supported bool `json:"supported"`
+	// FeeUSD is the one-time KYC fee in USD for the card's product, charged
+	// once per card on the first submission. It can be nil, and 0 means the
+	// upload is free.
+	FeeUSD *float64 `json:"fee_usd"`
+	// Submitted reports whether documents have been submitted for the card.
+	Submitted bool `json:"submitted"`
+	// SubmittedAt is the RFC 3339 time of the submission, or nil if none.
+	SubmittedAt *string `json:"submitted_at"`
 }
 
 // CardBalance is a card's own balance.
@@ -302,6 +319,8 @@ type CardSummary struct {
 	Label     *string   `json:"label"`
 	CreatedAt string    `json:"created_at"`
 	Tags      []CardTag `json:"tags"`
+	// Kyc is the card's identity-document (KYC) state. See SubmitKyc.
+	Kyc CardKyc `json:"kyc"`
 }
 
 // List returns every card belonging to the calling project, newest first.
@@ -364,6 +383,13 @@ type CardProduct struct {
 	AnnualFeeUSD *float64 `json:"annual_fee_usd"`
 	// DisallowInitialLoad means Create must omit InitialLoad.
 	DisallowInitialLoad bool `json:"disallow_initial_load"`
+	// KycSupported reports whether cards of this product accept identity
+	// documents via SubmitKyc.
+	KycSupported bool `json:"kyc_supported"`
+	// KycFeeUSD is the one-time USD fee charged per card for the first KYC
+	// submission. It is set per product; 0 means no fee is charged and the
+	// upload is free.
+	KycFeeUSD float64 `json:"kyc_fee_usd"`
 }
 
 // ListProducts returns the active card product catalog. Fetch it rather

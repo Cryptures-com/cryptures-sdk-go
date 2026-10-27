@@ -71,7 +71,7 @@ Operations are grouped by domain, mirroring the [API reference](https://docs.cry
 | `client.Blockchain.Lookups` | Transactions by hash, blocks, token metadata, UTXOs |
 | `client.Blockchain.NFT` | Collection listings, token owners |
 | `client.Blockchain.Storage` | IPFS uploads |
-| `client.Card.Cards` | Create, get, list, fund, withdraw, set PIN, block, unblock, terminate, transactions, per-card tags, product catalog |
+| `client.Card.Cards` | Create, get, list, fund, withdraw, set PIN, block, unblock, terminate, transactions, KYC document upload, per-card tags, product catalog |
 | `client.Card.Balance` | Project USD balance and ledger |
 | `client.Card.Tags` | Card tag management |
 | `client.Card.Reports` | Funding/withdrawal summary report |
@@ -130,6 +130,30 @@ if err != nil {
 fmt.Println("created card", card.Data.CardID, "ending in", card.Data.LastFour)
 ```
 
+Submit the cardholder's identity documents for a card whose product supports KYC (`Kyc.Supported`). Each file must be a PNG, JPG/JPEG or PDF of at most 2 MB; the back is optional. A one-time per-card fee (`Kyc.FeeUSD`, which can be 0) is charged from the project balance, and a `card.kyc_submitted` webhook event fires on success:
+
+```go
+front, err := os.Open("front.jpg")
+if err != nil {
+	log.Fatal(err)
+}
+defer front.Close()
+back, err := os.Open("back.jpg")
+if err != nil {
+	log.Fatal(err)
+}
+defer back.Close()
+
+res, err := client.Card.Cards.SubmitKyc(ctx, card.Data.CardID, &cryptures.SubmitKycRequest{
+	DocumentFront: cryptures.CardKycDocument{Filename: "front.jpg", Content: front},
+	DocumentBack:  &cryptures.CardKycDocument{Filename: "back.jpg", Content: back}, // optional
+})
+if err != nil {
+	log.Fatal(err)
+}
+fmt.Println("charged USD", res.Data.FeeChargedUSD, "already paid:", res.Data.FeeAlreadyPaid)
+```
+
 ### Compliance
 
 ```go
@@ -180,7 +204,7 @@ Requests whose repetition could duplicate a side effect are **never** retried au
 - `Blockchain.Operations.RPC`, the JSON-RPC gateway: the call may be a broadcast such as `eth_sendRawTransaction`.
 - `Blockchain.Storage.UploadIPFS`, which is billed per call.
 - `Blockchain.Wallet.Generate`, where a retry would return a different new wallet.
-- `Card.Cards.Create`, `Fund` and `Withdraw`, which move money, and the card state changes `SetPIN`, `Block`, `Unblock` and `Terminate`.
+- `Card.Cards.Create`, `Fund`, `Withdraw` and `SubmitKyc`, which move money (`SubmitKyc` charges a one-time per-card fee, and after a 502 or 504 the outcome is unknown: check `Cards.Get` before resubmitting), and the card state changes `SetPIN`, `Block`, `Unblock` and `Terminate`.
 - `Card.Tags.Create`.
 - `Compliance.Sessions.Create`.
 - `Compliance.Screening.AMLCheck` and `CreateWalletScreening` **without** an idempotency key. Each of those calls is a separate charge.

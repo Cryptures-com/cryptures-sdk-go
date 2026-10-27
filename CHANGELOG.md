@@ -1,5 +1,13 @@
 # Changelog
 
+## Unreleased
+
+### Added
+
+- `Card.Cards.SubmitKyc` uploads a cardholder's identity documents (`POST /api/v1/card/cards/{card_id}/kyc`, multipart/form-data with `documentFront` and optional `documentBack`; PNG, JPG or PDF, up to 2 MB each). A one-time per-card fee is charged from the project balance (it can be 0, in which case the upload is free). The call is never retried automatically. New types: `SubmitKycRequest`, `CardKycDocument`, `CardKycSubmission` and `CardKycSubmissionData`.
+- `Card.Kyc` and `CardSummary.Kyc` (type `CardKyc`: `Supported`, `FeeUSD`, `Submitted`, `SubmittedAt`) on card reads, and `CardProduct.KycSupported` and `CardProduct.KycFeeUSD` on the product catalog.
+- The `card.kyc_submitted` webhook event is documented on `Card.Webhooks.Register`.
+
 ## v0.1.1 (2026-10-02)
 
 ### Security
