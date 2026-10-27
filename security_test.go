@@ -176,6 +176,7 @@ var retryMatrix = map[string]bool{
 	"card.create":                        false,
 	"card.fund":                          false,
 	"card.withdraw":                      false,
+	"card.kyc.submit":                    false, // billed, outcome unknown after 502/504
 	"card.setpin":                        false,
 	"card.block":                         false,
 	"card.unblock":                       false,
@@ -291,6 +292,9 @@ func TestRetryMatrix(t *testing.T) {
 	calls = append(calls,
 		call{"Storage.UploadIPFS", "POST", "/api/v1/blockchain/storage/ipfs", func(ctx context.Context, c *Client) (any, error) {
 			return c.Blockchain.Storage.UploadIPFS(ctx, "a.txt", strings.NewReader("x"))
+		}, false},
+		call{"Cards.SubmitKyc", "POST", "/api/v1/card/cards/card_a1b2c3d4/kyc", func(ctx context.Context, c *Client) (any, error) {
+			return c.Card.Cards.SubmitKyc(ctx, "card_a1b2c3d4", &SubmitKycRequest{DocumentFront: CardKycDocument{Content: strings.NewReader("x")}})
 		}, false},
 		call{"Sessions.GetDocument", "GET", "/api/v1/compliance/sessions/s1/documents/front_image", func(ctx context.Context, c *Client) (any, error) {
 			return c.Compliance.Sessions.GetDocument(ctx, "s1", DocumentFrontImage, nil)

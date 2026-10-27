@@ -55,8 +55,8 @@ type CardWebhooksService struct {
 }
 
 // Register registers (or replaces) the project's https:// callback URL for
-// card-domain events (card.created, card.funded, card.withdrawn, and
-// processor-originated card events). Deliveries are signed with the returned
+// card-domain events (card.created, card.funded, card.withdrawn,
+// card.kyc_submitted, and processor-originated card events). Deliveries are signed with the returned
 // secret in the X-Card-Signature header. Only one URL is supported per
 // project.
 func (s *CardWebhooksService) Register(ctx context.Context, url string, opts ...RequestOption) (*WebhookRegistration, error) {

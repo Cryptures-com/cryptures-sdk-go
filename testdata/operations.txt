@@ -65,6 +65,7 @@ POST /api/v1/blockchain/storage/ipfs storage.ipfs.upload
 POST /api/v1/card/cards/create card.create
 POST /api/v1/card/cards/{card_id}/block card.block
 POST /api/v1/card/cards/{card_id}/fund card.fund
+POST /api/v1/card/cards/{card_id}/kyc card.kyc.submit
 POST /api/v1/card/cards/{card_id}/pin card.setpin
 POST /api/v1/card/cards/{card_id}/terminate card.terminate
 POST /api/v1/card/cards/{card_id}/unblock card.unblock
